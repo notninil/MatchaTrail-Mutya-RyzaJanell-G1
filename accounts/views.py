@@ -98,6 +98,7 @@ def profile(request):
     })
 
 
+@require_http_methods(["GET", "POST"])
 def register(request):
     form = RegistrationForm(
         request.POST if request.method == "POST" else None

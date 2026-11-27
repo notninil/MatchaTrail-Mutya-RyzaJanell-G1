@@ -33,7 +33,7 @@
 </nav>
 </header>
 <main id="main-content" class="site-main {% block layout %}{% endblock %}" tabindex="-1">
-  {% block messages %}{% for message in messages %}<div class="notice" role="status"><span class="notice-label">Saved</span><p>{{ message }}</p></div>{% endfor %}{% endblock %}
+  {% block messages %}{% for message in messages %}<div class="notice" role="status"><span class="notice-label">{% if "Removed" in message.tags %}Removed{% elif "error" in message.tags %}Error{% else %}Saved{% endif %}</span><p>{{ message }}</p></div>{% endfor %}{% endblock %}
   {% block content %}{% endblock %}
 </main>
 <footer class="site-footer"><span>MatchaTrail</span><span>For the love of matcha.</span></footer>
