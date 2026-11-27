@@ -39,6 +39,8 @@ Run `python manage.py test` against a separate, disposable PostgreSQL developmen
 
 Run the check-in suite with `python manage.py test checkins -v 2` and the full suite with `python manage.py test -v 2`. The verbose output lists each test and its result. The test runner creates and removes a separate test database. Use PostgreSQL to exercise the duplicate-constraint error path.
 
+Disposable PostgreSQL 18 is the verified test environment. A read-only probe through the Supabase session pooler connected in 0.729 seconds and three `SELECT 1` queries took 89–103 ms each. The original Supabase test hang has not been reproduced or conclusively resolved. Use Supabase for manual browser verification with designated demo records and disposable PostgreSQL for automated tests.
+
 ## Role-based dashboards
 
 Visit `/login/` after registering. Login always redirects to `/dashboard/`, which sends Explorers to `/dashboard/explorer/` and Café Owners to `/dashboard/owner/` based on their stored account role. Each dashboard has role-specific content and navigation. Anonymous visitors must log in; accessing another role's dashboard returns HTTP 403. Logout uses a CSRF-protected POST form.
@@ -96,7 +98,7 @@ An Explorer records a visit to a café: the drink they tried, a 1-5 rating, an o
 
 ## Demo data and test accounts
 
-On a disposable development or grading database, run the following command to create or refresh sample cafés and reset the demo accounts' passwords:
+On a disposable development or grading database, run the following command to create or refresh sample cafés and create any missing demo accounts:
 
 ```text
 python manage.py seed_demo
@@ -104,10 +106,14 @@ python manage.py seed_demo
 
 Create check-ins through the UI. The seed command assigns **Demo Matcha House** and **Demo Whisk & Leaf** to the demo Café Owner.
 
-| Role | Username | Password |
+| Role | Username | Password environment variable |
 |---|---|---|
-| Explorer | `explorer_demo` | `Matcha!demo-2026` |
-| Café Owner | `owner_demo` | `Matcha!demo-2026` |
+| Explorer | `explorer_demo` | `MATCHATRAIL_DEMO_EXPLORER_PASSWORD` |
+| Café Owner | `owner_demo` | `MATCHATRAIL_DEMO_OWNER_PASSWORD` |
+
+For a new account, supply its password through the process environment or enter it at the hidden terminal prompt. Django validates supplied passwords. Regular reruns preserve existing account passwords. Use `python manage.py seed_demo --rotate-passwords` only for an intentional rotation on the designated demo database and supply both new passwords.
+
+Share grading credentials privately with the instructor through the agreed submission channel. Use unique disposable passwords for grading accounts. Previously published demo credentials remain visible in historical commits and PD2 reports. Any account still using a published password remains exposed until its password is rotated.
 
 ## Branching
 
