@@ -37,6 +37,8 @@ For local development without PostgreSQL credentials, set `DJANGO_USE_SQLITE=1` 
 
 Run `python manage.py test` against a separate, disposable PostgreSQL development server/database using a role that can create test databases. Never point tests at a production or shared grading database. Use TLS as required by settings. Verify the active engine with `python manage.py shell -c "from django.db import connection; print(connection.vendor)"`. SQLite is not final PD3 database evidence.
 
+Run the check-in suite with `python manage.py test checkins -v 2` and the full suite with `python manage.py test -v 2`. The verbose output lists each test and its result. The test runner creates and removes a separate test database. Use PostgreSQL to exercise the duplicate-constraint error path.
+
 Disposable PostgreSQL 18 is the verified test environment. A read-only probe through the Supabase session pooler connected in 0.729 seconds and three `SELECT 1` queries took 89–103 ms each. The original Supabase test hang has not been reproduced or conclusively resolved. Use Supabase for manual browser verification with designated demo records and disposable PostgreSQL for automated tests.
 
 ## Role-based dashboards
