@@ -1,3 +1,5 @@
+from functools import wraps
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
@@ -15,15 +17,16 @@ from .models import CheckIn
 def explorer_required(view):
     """Login is enforced first; then only Explorers may continue (others get HTTP 403)."""
     @login_required
+    @wraps(view)
     def wrapper(request, *args, **kwargs):
         if request.user.role != User.Role.EXPLORER:
             raise PermissionDenied
         return view(request, *args, **kwargs)
-    wrapper.__name__ = view.__name__
     return wrapper
 
 
 @login_required
+@require_http_methods(["GET", "HEAD"])
 def checkin_list(request):
     """Explorers see their own check-ins; Café Owners see check-ins at their own cafés (read-only)."""
     if request.user.role == User.Role.OWNER:
@@ -45,7 +48,9 @@ def _save_checkin(request, form, success_message):
             with transaction.atomic():
                 form.instance.user = request.user  # always the signed-in user, never client data
                 form.save()
-        except IntegrityError:
+        except IntegrityError as error:
+            if getattr(getattr(error.__cause__, "diag", None), "constraint_name", None) != "checkins_one_per_cafe_per_day":
+                raise
             form.add_error(None, "You already checked in at this café on that date.")
         else:
             messages.success(request, success_message, extra_tags="Saved")
@@ -56,7 +61,7 @@ def _save_checkin(request, form, success_message):
 @explorer_required
 @require_http_methods(["GET", "POST"])
 def checkin_create(request):
-    form = CheckInForm(request.POST or None, user=request.user)
+    form = CheckInForm(request.POST if request.method == "POST" else None, user=request.user)
     if request.method == "POST" and _save_checkin(request, form, "Your check-in was added to your passport."):
         return redirect("checkin_list")
     return render(request, "checkins/form.html", {"form": form, "title": "New check-in", "editing": False})
@@ -66,7 +71,7 @@ def checkin_create(request):
 @require_http_methods(["GET", "POST"])
 def checkin_update(request, pk):
     checkin = get_object_or_404(CheckIn, pk=pk, user=request.user)  # others' records are a 404
-    form = CheckInForm(request.POST or None, instance=checkin, user=request.user)
+    form = CheckInForm(request.POST if request.method == "POST" else None, instance=checkin, user=request.user)
     if request.method == "POST" and _save_checkin(request, form, "Your check-in was updated."):
         return redirect("checkin_list")
     return render(request, "checkins/form.html",

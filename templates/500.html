@@ -1,0 +1,20 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Something went wrong · MatchaTrail</title>
+  <link rel="stylesheet" href="{% static 'account.css' %}">
+</head>
+<body>
+  <main class="site-main">
+    <section class="access-denied" aria-labelledby="error-title">
+      <p class="eyebrow">500 / Server error</p>
+      <h1 id="error-title">Something went wrong.</h1>
+      <p class="intro">We couldn't complete your request. Please try again later.</p>
+      <a class="button" href="{% url 'dashboard' %}">Return to MatchaTrail</a>
+    </section>
+  </main>
+</body>
+</html>
