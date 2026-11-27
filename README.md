@@ -9,7 +9,7 @@ MatchaTrail is a Django web app for Cebu matcha lovers. Explorers log the cafés
 
 For local development without PostgreSQL credentials, set `DJANGO_USE_SQLITE=1` in `.env`, together with a generated `DJANGO_SECRET_KEY` and `DJANGO_DEBUG=1`. This uses an ignored local `db.sqlite3` file. Install dependencies, then run `python manage.py migrate` and `python manage.py runserver`. Set `DJANGO_USE_SQLITE=0` to use the PostgreSQL configuration below; the two databases keep separate data.
 
-1. Install Python 3.10+ and PostgreSQL 14+. Create a PostgreSQL database and a login role that owns it. For example, in `psql` as a PostgreSQL administrator:
+1. Install Python 3.10+. If you use Supabase, get the PostgreSQL URI from the project's **Connect** panel and continue to step 2. If you run PostgreSQL 14+ locally, configure it to accept TLS connections and create a database and a login role that owns it. For example, in `psql` as a PostgreSQL administrator:
 
    ```sql
    CREATE ROLE matchatrail LOGIN;
@@ -30,12 +30,12 @@ For local development without PostgreSQL credentials, set `DJANGO_USE_SQLITE=1` 
    python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
    ```
 
-3. Copy `.env.example` to `.env`. Set the generated value as a double-quoted `DJANGO_SECRET_KEY` and enter your database credentials. For Supabase, use the PostgreSQL connection details from the direct connection or session pooler and set `POSTGRES_SSLMODE=require`. Never commit `.env`; it is listed in `.gitignore`.
+3. If you do not already have an `.env`, copy `.env.example` to `.env`. Set the generated value as a double-quoted `DJANGO_SECRET_KEY`. For PostgreSQL, set `DJANGO_USE_SQLITE=0` and set `DATABASE_URL` to your Supabase direct or session-pooler URI, or to your local PostgreSQL URI (`postgresql://matchatrail:PASSWORD@localhost:5432/matchatrail`). Replace placeholders and percent-encode any reserved characters in the password. Django requires TLS for PostgreSQL. Keep `.env` private.
 
 4. Run `python manage.py migrate` and `python manage.py runserver`.
 5. Open http://127.0.0.1:8000/register/ and create an Explorer account.
 
-Run `python manage.py test` with a PostgreSQL role that can create test databases.
+Run `python manage.py test` against a separate, disposable PostgreSQL development server/database using a role that can create test databases. Never point tests at a production or shared grading database. Use TLS as required by settings. Verify the active engine with `python manage.py shell -c "from django.db import connection; print(connection.vendor)"`. SQLite is not final PD3 database evidence.
 
 ## Role-based dashboards
 
@@ -94,11 +94,13 @@ An Explorer records a visit to a café: the drink they tried, a 1-5 rating, an o
 
 ## Demo data and test accounts
 
-Load the sample cafés and check-ins with:
+On a disposable development or grading database, run the following command to create or refresh sample cafés and reset the demo accounts' passwords:
 
 ```text
 python manage.py seed_demo
 ```
+
+Create check-ins through the UI. The seed command assigns **Demo Matcha House** and **Demo Whisk & Leaf** to the demo Café Owner.
 
 | Role | Username | Password |
 |---|---|---|
@@ -109,4 +111,4 @@ python manage.py seed_demo
 
 - `main`: stable code only, changed through pull requests.
 - `develop`: integration branch.
-- `feature/<name>`: one branch per feature, merged into `develop` by pull request.
+- PD3 work branches: `fix/<issue>`, `hardening/<area>`, `test/<area>`; open pull requests into `develop`. Retain merged branches. Release via a pull request from `develop` into `main`; no direct main commits.
