@@ -37,6 +37,8 @@ For local development without PostgreSQL credentials, set `DJANGO_USE_SQLITE=1` 
 
 Run `python manage.py test` against a separate, disposable PostgreSQL development server/database using a role that can create test databases. Never point tests at a production or shared grading database. Use TLS as required by settings. Verify the active engine with `python manage.py shell -c "from django.db import connection; print(connection.vendor)"`. SQLite is not final PD3 database evidence.
 
+Run the check-in suite with `python manage.py test checkins -v 2` and the full suite with `python manage.py test -v 2`. The verbose output lists each test and its result. The test runner creates and removes a separate test database. Use PostgreSQL to exercise the duplicate-constraint error path.
+
 ## Role-based dashboards
 
 Visit `/login/` after registering. Login always redirects to `/dashboard/`, which sends Explorers to `/dashboard/explorer/` and Café Owners to `/dashboard/owner/` based on their stored account role. Each dashboard has role-specific content and navigation. Anonymous visitors must log in; accessing another role's dashboard returns HTTP 403. Logout uses a CSRF-protected POST form.
